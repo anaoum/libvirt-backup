@@ -1,21 +1,18 @@
 # Libvirt Backup
 
-A collection of scripts to be used with libvirt that facilitate incremental backing up of running virtual machines.
+A collection of scripts to be used with libvirt that facilitate incremental backing up of running virtual machines to a remote server.
 
 To install, the files need to be copied to /usr/local/bin on both the host and the backup server:
 
 ```
+chmod +x backup-all-vms.sh vm-backup.sh vm-consolidate-backups.sh vm-inc-backup.sh
 cp *.sh /usr/local/bin
-chmod +x /usr/local/bin/vm-inc-backup.sh \
-  /usr/local/bin/vm-backup.sh \
-  /usr/local/bin/backup-all-vms.sh \
-  /usr/local/bin/vm-consolidate-backups.sh
 ```
 
 To enable incremental backups of all running virtual machines at midnight every day, execute:
 
 ```
-echo '0 0 * * * root /usr/local/bin/backup-all-vms.sh HOST FOLDER' > /etc/cron.d/backup-vms
+echo '0 0 * * * root /usr/local/bin/backup-all-vms.sh BACKUP_HOST REMOTE_FOLDER' > /etc/cron.d/backup-vm
 ```
 
 By default, a maximum of 7 incremental backups are kept. Full backups roll forward.
