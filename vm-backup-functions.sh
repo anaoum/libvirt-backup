@@ -27,3 +27,15 @@ function delete_snapshot_chain {
         rm -f "$image"
     done
 }
+function verify_domain_exists {
+    if ! virsh dominfo "$1" > /dev/null 2>&1; then
+        >&2 echo "Domain '$1' does not exist."
+        exit 100
+    fi
+}
+function verify_domain_running {
+    if ! virsh dominfo "$1" | grep -q 'State:\s*running'; then
+        >&2 echo "Domain '$1' is not running."
+        exit 101
+    fi
+}

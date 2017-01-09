@@ -13,20 +13,12 @@ if [ -z "$BACKUP_HOST" -o -z "$BACKUP_FOLDER" -o -z "$DOMAIN" ]; then
     >&2 echo "Usage: $(basename $0) <backup-host> <backup-folder> <domain> [max-backups]"
     exit 1
 fi
-
 if [ -z "$MAX_BACKUPS" ]; then
     MAX_BACKUPS=7
 fi
 
-if ! virsh dominfo "$DOMAIN" > /dev/null 2>&1; then
-    >&2 echo "Domain '$DOMAIN' does not exist. Aborting."
-    exit 2
-fi
-
-if ! virsh dominfo "$DOMAIN" | grep -q 'State:\s*running'; then
-    >&2 echo "Domain '$DOMAIN' is not running. Must be running to backup. Skipping..."
-    exit 3
-fi
+verify_domain_exists "$DOMAIN"
+verify_domain_running "$DOMAIN"
 
 echo "Beginning backup for $DOMAIN."
 
