@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# TODOs:
-#  Test on domains with spaces.
-#  Test on images with spaces.
-#  Test with other snapshots.
-#  Test on raw images.
-
 set -e
 
 source "$(dirname "$0")/vm-backup-functions.sh"

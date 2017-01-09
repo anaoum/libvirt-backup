@@ -1,3 +1,5 @@
+# Libvirt Backup
+
 A collection of scripts to be used with libvirt that facilitate incremental backing up of running virtual machines.
 
 To install, the files need to be copied to /usr/local/bin on both the host and the backup server:
@@ -31,3 +33,9 @@ Tuesday [F] > Wednesday [I] > Thursday [I] > Friday [I] > Saturday [I] > Sunday 
 ```
 
 This is achieved by pulling the `Monday [F]` image into the `Tuesday [I]` image.
+
+## TODO
+- Test on domains with spaces.
+- Test on images with spaces.
+- Test with other snapshots.
+- Test on raw images.
