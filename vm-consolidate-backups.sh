@@ -2,7 +2,7 @@
 
 set -e
 
-source /usr/local/bin/vm-backup-functions.sh
+source "$(dirname "$0")/vm-backup-functions.sh"
 
 LAST_BACKUP="$1"
 MAX_BACKUPS="$2"

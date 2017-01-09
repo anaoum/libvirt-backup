@@ -8,7 +8,7 @@
 
 set -e
 
-source /usr/local/bin/vm-backup-functions.sh
+source "$(dirname "$0")/vm-backup-functions.sh"
 
 BACKUP_FOLDER="$1"
 DOMAIN="$2"
