@@ -39,3 +39,13 @@ function verify_domain_running {
         exit 101
     fi
 }
+function get_quiesce {
+    if virsh domfsthaw "$1" >/dev/null 2>&1; then
+        echo "--quiesce"
+    fi
+}
+function get_diskspec {
+    get_disks "$1" | while read disk; do
+        echo -n "--diskspec "$disk",snapshot=external "
+    done
+}

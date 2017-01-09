@@ -20,16 +20,7 @@ echo "Beginning backup for $DOMAIN."
 BACKUP_LOCATION="$BACKUP_FOLDER/$DOMAIN"
 mkdir -p "$BACKUP_LOCATION"
 
-QUIESCE=""
-if virsh domfsthaw "$DOMAIN" >/dev/null 2>&1; then
-    echo "QEMU guest agent detected. Using --quiesce."
-    QUIESCE="--quiesce"
-fi
-DISKSPEC=""
-get_disks "$DOMAIN" | while read disk; do
-    DISKSPEC="$DISKSPEC --diskspec $disk,snapshot=external"
-done
-virsh snapshot-create-as --domain "$DOMAIN" --name "$(date +%Y%m%d%H%M%S).qcow2" --no-metadata --atomic $QUIESCE --disk-only $DISKSPEC
+virsh snapshot-create-as --domain "$DOMAIN" --name "$(date +%Y%m%d%H%M%S).qcow2" --no-metadata --atomic $(get_quiesce "$DOMAIN") --disk-only $(get_diskspec "$DOMAIN")
 
 get_disks "$DOMAIN" | while read disk; do
     BACKUP_SRC="$(get_backing "$disk")"
