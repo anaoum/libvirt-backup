@@ -7,7 +7,7 @@ if [ -z "$BACKUP_FOLDER" ]; then
     exit 1
 fi
 
-virsh list --all --name | while read domain; do
+virsh list --all --name | while IFS= read -r domain; do
     [ -z "$domain" ] && continue
     $(dirname "$0")/vm-backup.sh "$domain" "$BACKUP_FOLDER"
     echo

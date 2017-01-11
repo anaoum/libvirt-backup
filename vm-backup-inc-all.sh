@@ -12,7 +12,7 @@ if [ -z "$MAX_BACKUPS" ]; then
     MAX_BACKUPS=7
 fi
 
-virsh list --all --name | while read domain; do
+virsh list --all --name | while IFS= read -r domain; do
     [ -z "$domain" ] && continue
     $(dirname "$0")/vm-backup-inc.sh "$domain" "$BACKUP_FOLDER" "$BACKUP_HOST" "$MAX_BACKUPS"
     echo

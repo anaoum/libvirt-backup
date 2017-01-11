@@ -26,7 +26,7 @@ LOCAL_BACKUP_DIR="$(mktemp --tmpdir -d)"
 echo "Performing a local full backup to $LOCAL_BACKUP_DIR:"
 $(dirname "$0")/vm-backup.sh "$DOMAIN" "$LOCAL_BACKUP_DIR" "$SNAPSHOT_NAME" | sed 's/^/  /'
 
-find "$LOCAL_BACKUP_DIR/$DOMAIN/" -type f -name "*.$SNAPSHOT_NAME.qcow2" | while read BACKUP_SRC; do
+find "$LOCAL_BACKUP_DIR/$DOMAIN/" -type f -name "*.$SNAPSHOT_NAME.qcow2" | while IFS= read -r BACKUP_SRC; do
 
     echo "Backup source is $BACKUP_SRC."
 
@@ -65,7 +65,7 @@ echo "  rebasing \$LAST_BACKUP_INCREMENTAL on to current backup."
 qemu-img rebase -p -f qcow2 -b "$BACKUP_DST" "\$LAST_BACKUP_INCREMENTAL"
 echo "  replacing last backup with \$LAST_BACKUP_INCREMENTAL."
 mv "\$LAST_BACKUP_INCREMENTAL" "$LAST_BACKUP"
-find "$REMOTE_BACKUP_LOCATION" -regextype posix-extended -regex "$BACKUP_FINDER" | sort -n | head -n -"$MAX_BACKUPS" | while read old_backup; do
+find "$REMOTE_BACKUP_LOCATION" -regextype posix-extended -regex "$BACKUP_FINDER" | sort -n | head -n -"$MAX_BACKUPS" | while IFS= read -r old_backup; do
     echo "  deleteing old backup \$old_backup."
     rm -f "\$old_backup"
 done
