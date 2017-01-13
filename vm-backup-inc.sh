@@ -43,7 +43,7 @@ find "$LOCAL_BACKUP_DIR/$DOMAIN/" -type f -name "*.$SNAPSHOT_NAME.qcow2" | while
         echo "There are no previous backups for $DOMAIN:/dev/$TARGET on $BACKUP_HOST."
 
         echo "Syncing from $BACKUP_SRC to $BACKUP_HOST:$BACKUP_DST."
-        rsync --info=progress2 --sparse "$BACKUP_SRC" "$BACKUP_HOST:$BACKUP_DST"
+        rsync --info=progress2 --sparse --chmod=0400 "$BACKUP_SRC" "$BACKUP_HOST:$BACKUP_DST"
     else
         echo "Last backup for $DOMAIN:/dev/$TARGET on $BACKUP_HOST is $LAST_BACKUP."
 
@@ -58,13 +58,17 @@ EOF
 
         ssh "$BACKUP_HOST" /bin/bash <<EOF
 echo "Connected to $BACKUP_HOST:"
+echo "  changing permissions of $BACKUP_DST to 0400."
+chmod 0400 "$BACKUP_DST"
 LAST_BACKUP_INCREMENTAL="\$(mktemp --tmpdir "\$(basename "$LAST_BACKUP")-incremental-XXXXX")"
 echo "  creating \$LAST_BACKUP_INCREMENTAL based on last backup."
 qemu-img create -q -f qcow2 -b "$LAST_BACKUP" "\$LAST_BACKUP_INCREMENTAL"
 echo "  rebasing \$LAST_BACKUP_INCREMENTAL on to current backup."
 qemu-img rebase -p -f qcow2 -b "$BACKUP_DST" "\$LAST_BACKUP_INCREMENTAL"
+echo "  changing permissions of \$LAST_BACKUP_INCREMENTAL to 0400."
+chmod 0400 "\$LAST_BACKUP_INCREMENTAL"
 echo "  replacing last backup with \$LAST_BACKUP_INCREMENTAL."
-mv "\$LAST_BACKUP_INCREMENTAL" "$LAST_BACKUP"
+mv -f "\$LAST_BACKUP_INCREMENTAL" "$LAST_BACKUP"
 find "$REMOTE_BACKUP_LOCATION" -regextype posix-extended -regex "$BACKUP_FINDER" | sort -n | head -n -"$MAX_BACKUPS" | while IFS= read -r old_backup; do
     echo "  deleting old backup \$old_backup."
     rm -f "\$old_backup"

@@ -38,6 +38,8 @@ if virsh dominfo "$DOMAIN" | grep -q 'State:\s*running'; then
         BACKUP_DST="$BACKUP_LOCATION/$target.$SNAPSHOT_NAME.qcow2"
         echo "Copying $BACKUP_SRC to $BACKUP_DST."
         qemu-img convert -p -O qcow2 "$BACKUP_SRC" "$BACKUP_DST"
+        echo "Changing permissions of $BACKUP_DST to 0400."
+        chmod 0400 "$BACKUP_DST"
         echo "Committing from $source down to $BACKUP_SRC."
         virsh blockcommit "$DOMAIN" "$source" --base "$BACKUP_SRC" --pivot > /dev/null
         echo "Deleting temporary snapshot $source."
@@ -49,5 +51,7 @@ else
         BACKUP_DST="$BACKUP_LOCATION/$target.$SNAPSHOT_NAME.qcow2"
         echo "Copying $BACKUP_SRC to $BACKUP_DST."
         qemu-img convert -p -O qcow2 "$BACKUP_SRC" "$BACKUP_DST"
+        echo "Changing permissions of $BACKUP_DST to 0400."
+        chmod 0400 "$BACKUP_DST"
     done
 fi
