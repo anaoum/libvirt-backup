@@ -78,6 +78,14 @@ EOF
 
 done
 
+ARGS="-regextype posix-extended -mindepth 1 -maxdepth 1 $(find "$LOCAL_BACKUP_DIR/$DOMAIN/" -type f -name "*.$SNAPSHOT_NAME.qcow2" | while IFS= read -r BACKUP_SRC; do
+    BACKUP_FILENAME="$(basename "$BACKUP_SRC")"
+    echo -n "-and -not -regex ".*/${BACKUP_FILENAME/%.$SNAPSHOT_NAME.qcow2/}.[0-9]\{14\}.qcow2" "
+done)"
+ssh -n "$BACKUP_HOST" find "$REMOTE_BACKUP_LOCATION" $ARGS | while IFS= read -r unknown_file; do
+    >&2 echo "Unknown file $BACKUP_HOST:$unknown_file."
+done
+
 echo "Deleting local full backup at $LOCAL_BACKUP_DIR."
 rm -rf "$LOCAL_BACKUP_DIR"
 
