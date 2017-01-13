@@ -31,8 +31,8 @@ find "$LOCAL_BACKUP_DIR/$DOMAIN/" -type f -name "*.$SNAPSHOT_NAME.qcow2" | while
     echo "Backup source is $BACKUP_SRC."
 
     BACKUP_FILENAME="$(basename "$BACKUP_SRC")"
-    ORIGINAL_FILENAME="${BACKUP_FILENAME/%.$SNAPSHOT_NAME.qcow2/.qcow2}"
-    BACKUP_FINDER=".*/${ORIGINAL_FILENAME/%.qcow2/.[0-9]\{14\}.qcow2}"
+    TARGET="${BACKUP_FILENAME/%.$SNAPSHOT_NAME.qcow2/}"
+    BACKUP_FINDER=".*/$TARGET.[0-9]{14}.qcow2"
 
     BACKUP_DST="$REMOTE_BACKUP_LOCATION/$BACKUP_FILENAME"
     echo "Backup destination is $BACKUP_HOST:$BACKUP_DST."
@@ -40,12 +40,12 @@ find "$LOCAL_BACKUP_DIR/$DOMAIN/" -type f -name "*.$SNAPSHOT_NAME.qcow2" | while
     LAST_BACKUP="$(ssh -n "$BACKUP_HOST" find "$REMOTE_BACKUP_LOCATION" -regextype posix-extended -regex "$BACKUP_FINDER" | sort -n | tail -1)"
 
     if [ -z "$LAST_BACKUP" ]; then
-        echo "There are no previous backups for $ORIGINAL_FILENAME."
+        echo "There are no previous backups for $DOMAIN:/dev/$TARGET on $BACKUP_HOST."
 
         echo "Syncing from $BACKUP_SRC to $BACKUP_HOST:$BACKUP_DST."
         rsync --info=progress2 --sparse "$BACKUP_SRC" "$BACKUP_HOST:$BACKUP_DST"
     else
-        echo "Last backup for $ORIGINAL_FILENAME on $BACKUP_HOST is $LAST_BACKUP."
+        echo "Last backup for $DOMAIN:/dev/$TARGET on $BACKUP_HOST is $LAST_BACKUP."
 
         ssh "$BACKUP_HOST" /bin/bash <<EOF
 echo "Connected to $BACKUP_HOST:"
@@ -66,7 +66,7 @@ qemu-img rebase -p -f qcow2 -b "$BACKUP_DST" "\$LAST_BACKUP_INCREMENTAL"
 echo "  replacing last backup with \$LAST_BACKUP_INCREMENTAL."
 mv "\$LAST_BACKUP_INCREMENTAL" "$LAST_BACKUP"
 find "$REMOTE_BACKUP_LOCATION" -regextype posix-extended -regex "$BACKUP_FINDER" | sort -n | head -n -"$MAX_BACKUPS" | while IFS= read -r old_backup; do
-    echo "  deleteing old backup \$old_backup."
+    echo "  deleting old backup \$old_backup."
     rm -f "\$old_backup"
 done
 EOF

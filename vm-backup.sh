@@ -29,13 +29,13 @@ if virsh dominfo "$DOMAIN" | grep -q 'State:\s*running'; then
         QUIESCE=""
     fi
     DISKSPEC=""
-    virsh domblklist "$DOMAIN" --details | grep '^file *disk *' | sed 's/^file *disk *[^ ]* *//' | while IFS= read -r source; do
-        DISKSPEC="$DISKSPEC --diskspec "$source,snapshot=external""
+    virsh domblklist "$DOMAIN" --details | sed -n 's/^file *disk *\([^ ]*\) *\(.*\)/\1:\2/p' | while IFS=: read -r target source; do
+        DISKSPEC="$DISKSPEC --diskspec "$target,snapshot=external""
     done
-    virsh snapshot-create-as --domain "$DOMAIN" --name "$SNAPSHOT_NAME.qcow2" --no-metadata --atomic $QUIESCE --disk-only $DISKSPEC
-    virsh domblklist "$DOMAIN" --details | grep '^file *disk *' | sed 's/^file *disk *[^ ]* *//' | while IFS= read -r source; do
+    virsh snapshot-create-as --domain "$DOMAIN" --name "$SNAPSHOT_NAME-TEMP.qcow2" --no-metadata --atomic $QUIESCE --disk-only $DISKSPEC
+    virsh domblklist "$DOMAIN" --details | sed -n 's/^file *disk *\([^ ]*\) *\(.*\)/\1:\2/p' | while IFS=: read -r target source; do
         BACKUP_SRC="$(qemu-img info "$source" | grep '^backing file: *' | sed 's/backing file: *//')"
-        BACKUP_DST="$BACKUP_LOCATION/$(basename "$source")"
+        BACKUP_DST="$BACKUP_LOCATION/$target.$SNAPSHOT_NAME.qcow2"
         echo "Copying $BACKUP_SRC to $BACKUP_DST."
         qemu-img convert -p -O qcow2 "$BACKUP_SRC" "$BACKUP_DST"
         echo "Committing from $source down to $BACKUP_SRC."
@@ -44,11 +44,9 @@ if virsh dominfo "$DOMAIN" | grep -q 'State:\s*running'; then
         rm -f "$source"
     done
 else
-    virsh domblklist "$DOMAIN" --details | grep '^file *disk *' | sed 's/^file *disk *[^ ]* *//' | while IFS= read -r source; do
+    virsh domblklist "$DOMAIN" --details | sed -n 's/^file *disk *\([^ ]*\) *\(.*\)/\1:\2/p' | while IFS=: read -r target source; do
         BACKUP_SRC="$source"
-        SOURCE_NAME="$(basename "$source")"
-        SOURCE_EXT="${SOURCE_NAME##*.}"
-        BACKUP_DST="$BACKUP_LOCATION/${SOURCE_NAME/%$SOURCE_EXT/$SNAPSHOT_NAME.qcow2}"
+        BACKUP_DST="$BACKUP_LOCATION/$target.$SNAPSHOT_NAME.qcow2"
         echo "Copying $BACKUP_SRC to $BACKUP_DST."
         qemu-img convert -p -O qcow2 "$BACKUP_SRC" "$BACKUP_DST"
     done
