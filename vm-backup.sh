@@ -22,6 +22,8 @@ fi
 BACKUP_LOCATION="$BACKUP_FOLDER/$DOMAIN"
 mkdir -p "$BACKUP_LOCATION"
 
+virsh dumpxml "$DOMAIN" > "$BACKUP_LOCATION/$DOMAIN.xml"
+
 if virsh dominfo "$DOMAIN" | grep -q 'State:\s*running'; then
     if virsh domfsthaw "$1" >/dev/null 2>&1; then
         QUIESCE="--quiesce"

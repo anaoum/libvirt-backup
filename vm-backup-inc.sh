@@ -78,6 +78,9 @@ EOF
 
 done
 
+echo "Copying $LOCAL_BACKUP_DIR/$DOMAIN/$DOMAIN.xml to $BACKUP_HOST:$REMOTE_BACKUP_LOCATION/$DOMAIN.xml"
+scp "$LOCAL_BACKUP_DIR/$DOMAIN/$DOMAIN.xml" "$BACKUP_HOST:$REMOTE_BACKUP_LOCATION/$DOMAIN.xml"
+
 ARGS="-regextype posix-extended -mindepth 1 -maxdepth 1 $(find "$LOCAL_BACKUP_DIR/$DOMAIN/" -type f -name "*.$SNAPSHOT_NAME.qcow2" | while IFS= read -r BACKUP_SRC; do
     BACKUP_FILENAME="$(basename "$BACKUP_SRC")"
     echo -n "-and -not -regex ".*/${BACKUP_FILENAME/%.$SNAPSHOT_NAME.qcow2/}.[0-9]\{14\}.qcow2" "
