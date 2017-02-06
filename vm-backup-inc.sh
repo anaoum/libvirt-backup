@@ -5,14 +5,13 @@ set -e
 DOMAIN="$1"
 BACKUP_FOLDER="$2"
 BACKUP_HOST="$3"
-MAX_BACKUPS="$4"
+MAX_BACKUPS="${4:-7}"
+TMPDIR="${5:-$TMPDIR}"
+TMPDIR="${TMPDIR:-/tmp}"
 
 if [ -z "$DOMAIN" -o -z "$BACKUP_FOLDER" -o -z "$BACKUP_HOST" ]; then
-    >&2 echo "Usage: $(basename $0) <domain> <backup-folder> <backup-host> [max-backups]"
+    >&2 echo "Usage: $(basename $0) <domain> <backup-folder> <backup-host> [max-backups] [TMPDIR]"
     exit 1
-fi
-if [ -z "$MAX_BACKUPS" ]; then
-    MAX_BACKUPS=7
 fi
 
 echo "Beginning incremental backup for $DOMAIN at $(date '+%Y-%m-%d %H:%M:%S')."
@@ -22,7 +21,7 @@ echo "Creating $REMOTE_BACKUP_LOCATION on $BACKUP_HOST."
 ssh -n "$BACKUP_HOST" mkdir -p "$REMOTE_BACKUP_LOCATION"
 
 SNAPSHOT_NAME="$(date +%Y%m%d%H%M%S)"
-LOCAL_BACKUP_DIR="$(mktemp --tmpdir -d)"
+LOCAL_BACKUP_DIR="$(mktemp -p "$TMPDIR" -d)"
 echo "Performing a local full backup to $LOCAL_BACKUP_DIR:"
 $(dirname "$0")/vm-backup.sh "$DOMAIN" "$LOCAL_BACKUP_DIR" "$SNAPSHOT_NAME" | sed 's/^/  /'
 
@@ -60,7 +59,7 @@ EOF
 echo "Connected to $BACKUP_HOST:"
 echo "  changing permissions of $BACKUP_DST to 0400."
 chmod 0400 "$BACKUP_DST"
-LAST_BACKUP_INCREMENTAL="\$(mktemp --tmpdir "\$(basename "$LAST_BACKUP")-incremental-XXXXX")"
+LAST_BACKUP_INCREMENTAL="\$(mktemp -p "$REMOTE_BACKUP_LOCATION" "\$(basename "$LAST_BACKUP")-incremental-XXXXX")"
 echo "  creating \$LAST_BACKUP_INCREMENTAL based on last backup."
 qemu-img create -q -f qcow2 -b "$LAST_BACKUP" "\$LAST_BACKUP_INCREMENTAL"
 echo "  rebasing \$LAST_BACKUP_INCREMENTAL on to current backup."
