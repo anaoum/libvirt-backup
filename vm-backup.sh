@@ -31,11 +31,11 @@ if virsh dominfo "$DOMAIN" | grep -q 'State:\s*running'; then
         QUIESCE=""
     fi
     DISKSPEC=""
-    virsh domblklist "$DOMAIN" --details | sed -n 's/^file *disk *\([^ ]*\) *\(.*\)/\1:\2/p' | while IFS=: read -r target source; do
+    virsh domblklist "$DOMAIN" --details | sed -n 's/^file *disk *\([^ ]*\) *\(.*\)/\1:\2/p' | grep -v 'backup' | while IFS=: read -r target source; do
         DISKSPEC="$DISKSPEC --diskspec "$target,snapshot=external""
     done
     virsh snapshot-create-as --domain "$DOMAIN" --name "$SNAPSHOT_NAME-TEMP.qcow2" --no-metadata --atomic $QUIESCE --disk-only $DISKSPEC
-    virsh domblklist "$DOMAIN" --details | sed -n 's/^file *disk *\([^ ]*\) *\(.*\)/\1:\2/p' | while IFS=: read -r target source; do
+    virsh domblklist "$DOMAIN" --details | sed -n 's/^file *disk *\([^ ]*\) *\(.*\)/\1:\2/p' | grep -v 'backup' | while IFS=: read -r target source; do
         BACKUP_SRC="$(qemu-img info "$source" | grep '^backing file: *' | sed 's/backing file: *//')"
         BACKUP_DST="$BACKUP_LOCATION/$target.$SNAPSHOT_NAME.qcow2"
         echo "Copying $BACKUP_SRC to $BACKUP_DST."
@@ -48,7 +48,7 @@ if virsh dominfo "$DOMAIN" | grep -q 'State:\s*running'; then
         rm -f "$source"
     done
 else
-    virsh domblklist "$DOMAIN" --details | sed -n 's/^file *disk *\([^ ]*\) *\(.*\)/\1:\2/p' | while IFS=: read -r target source; do
+    virsh domblklist "$DOMAIN" --details | sed -n 's/^file *disk *\([^ ]*\) *\(.*\)/\1:\2/p' | grep -v 'backup' | while IFS=: read -r target source; do
         BACKUP_SRC="$source"
         BACKUP_DST="$BACKUP_LOCATION/$target.$SNAPSHOT_NAME.qcow2"
         echo "Copying $BACKUP_SRC to $BACKUP_DST."
