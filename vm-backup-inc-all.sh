@@ -6,6 +6,8 @@ MAX_BACKUPS="${3:-7}"
 TMPDIR="${4:-$TMPDIR}"
 TMPDIR="${TMPDIR:-/tmp}"
 
+export LIBVIRT_DEFAULT_URI="qemu:///system"
+
 if [ -z "$BACKUP_FOLDER" -o -z "$BACKUP_HOST" ]; then
     >&2 echo "Usage: $(basename $0) <backup-folder> <backup-host> [max-backups] [TMPDIR]"
     exit 1

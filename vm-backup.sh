@@ -6,6 +6,8 @@ DOMAIN="$1"
 BACKUP_FOLDER="$2"
 SNAPSHOT_NAME="$3"
 
+export LIBVIRT_DEFAULT_URI="qemu:///system"
+
 if [ -z "$DOMAIN" -o -z "$BACKUP_FOLDER" ]; then
     >&2 echo "Usage: $(basename $0) <domain> <backup-folder> [snapshot-name]"
     exit 1

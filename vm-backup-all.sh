@@ -2,6 +2,8 @@
 
 BACKUP_FOLDER="$1"
 
+export LIBVIRT_DEFAULT_URI="qemu:///system"
+
 if [ -z "$BACKUP_FOLDER" ]; then
     >&2 echo "Usage: $(basename $0) <backup-folder>"
     exit 1
