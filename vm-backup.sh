@@ -43,7 +43,10 @@ if virsh dominfo "$DOMAIN" | grep -q 'State:\s*running'; then
         BACKUP_DST="$BACKUP_LOCATION/$target.$SNAPSHOT_NAME.qcow2"
         if [[ "$BACKUP_SRC" != *"nobackup"* ]]; then
             echo "Copying $BACKUP_SRC to $BACKUP_DST."
-            qemu-img convert -p -O qcow2 "$BACKUP_SRC" "$BACKUP_DST"
+            cp "$BACKUP_SRC" "${BACKUP_DST}.tmp"
+            echo "Reducing size of $BACKUP_DST."
+            qemu-img convert -p -O qcow2 "${BACKUP_DST}.tmp" "$BACKUP_DST"
+            rm -f "${BACKUP_DST}.tmp"
             echo "Changing permissions of $BACKUP_DST to 0400."
             chmod 0400 "$BACKUP_DST"
         fi
