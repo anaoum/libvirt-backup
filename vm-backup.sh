@@ -37,9 +37,9 @@ if virsh dominfo "$DOMAIN" | grep -q 'State:\s*running'; then
         echo -n " --diskspec $target,snapshot=external"
     done
     )"
-    aa-complain "/etc/apparmor.d/libvirt/libvirt-$(virsh domuuid "$DOMAIN" | grep -v '^$')"
+    /usr/sbin/aa-complain "/etc/apparmor.d/libvirt/libvirt-$(virsh domuuid "$DOMAIN" | grep -v '^$')"
     virsh snapshot-create-as --domain "$DOMAIN" --name "$SNAPSHOT_NAME-TEMP.qcow2" --no-metadata --atomic $QUIESCE --disk-only $DISKSPEC
-    aa-enforce "/etc/apparmor.d/libvirt/libvirt-$(virsh domuuid "$DOMAIN" | grep -v '^$')"
+    /usr/sbin/aa-enforce "/etc/apparmor.d/libvirt/libvirt-$(virsh domuuid "$DOMAIN" | grep -v '^$')"
     virsh domblklist "$DOMAIN" --details | sed -n 's/^file *disk *\([^ ]*\) *\(.*\)/\1:\2/p' | while IFS=: read -r target source; do
         BACKUP_SRC="${source/$SNAPSHOT_NAME-TEMP./}"
         BACKUP_DST="$BACKUP_LOCATION/$target.$SNAPSHOT_NAME.qcow2"
